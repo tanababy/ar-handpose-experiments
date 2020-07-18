@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Display Webcam Stream</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
+  </head>
+  <body>
+    <video autoplay id="video"></video>
+  </body>
+  <script>
+    async function setHandPose() {
+      const $video = document.getElementById('video');
+      if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then((stream) => {
+            $video.srcObject = stream;
+          })
+          .catch((error) => {
+            console.log('error');
+          });
+      }
+
+      $video.addEventListener('loadeddata', () => {
+        setModel();
+      });
+
+      async function setModel() {
+        const model = await handpose.load();
+
+        setInterval(predict, 5000);
+
+        async function predict() {
+          const predictions = await model.estimateHands($video);
+          for (let i = 0; i < predictions.length; i++) {
+            //keypointsは21個から形成される。
+            const keypoints = predictions[i].landmarks; // The 3D coordinates of each hand landmark.
+
+            for (let i = 0; i < keypoints.length; i++) {
+              const [x, y, z] = keypoints[i];
+              console.log(`Keypoint ${i}: [${x}, ${y}, ${z}]`);
+            }
+          }
+        }
+      }
+    }
+    setHandPose();
+  </script>
+</html>

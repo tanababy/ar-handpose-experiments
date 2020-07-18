@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tensorflow.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
+  </head>
+  <body>
+    <div id="output_field"></div>
+  </body>
+  <script>
+    //「Tensor」とは...行列・ベクトル・数値を一般化したデータ。多次元配列みたいなやつ
+    async function learnLinear() {
+      // シーケンシャルモデル（線形回帰モデル）の枠組みの作成
+      // これはモデルが全体として線形回帰モデルになるという意味でなく、各ニューロンの入出力の関係が y=Σ(wx)+b と書ける線形回帰モデルであるということ
+      const model = tf.sequential();
+
+      // 入力層を追加
+      model.add(
+        tf.layers.dense({
+          units: 1, // 入力は 1x1 のテンソル（=スカラー）
+          inputShape: [1], // ユニット（別名：ノード）は１個だけ
+        })
+      );
+
+      // 学習実行のため、学習方法を指定してモデルをコンパイル
+      model.compile({
+        loss: 'meanSquaredError',
+        optimizer: 'sgd',
+      });
+
+      const xs = tf.tensor2d([-1, 0, 1, 2, 3, 4], [6, 1]); //データ作ってる。1次元ベクトル。6行1列
+      const ys = tf.tensor2d([-3, -1, 1, 3, 5, 7], [6, 1]);
+
+      await model.fit(xs, ys, { epochs: 1000 }); // 学習の実行、一手順1000回
+
+      document.getElementById('output_field').innerText = model.predict(
+        tf.tensor2d([20], [1, 1])
+      );
+    }
+    learnLinear();
+  </script>
+</html>

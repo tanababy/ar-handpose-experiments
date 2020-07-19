@@ -92,14 +92,14 @@ const startAR = () => {
     }
   );
 
-  // setTimeout(async () => {
-  //   await aiModelLoad(); //機械学習モデルのロードを待って
-  //   predict(); //計算開始
-  //   // predictLoop(500);
-  //   // document
-  //   //   .getElementById('arjs-video')
-  //   //   .addEventListener('loadeddata', () => {});
-  // }, 1000);
+  setTimeout(async () => {
+    await aiModelLoad(); //機械学習モデルのロードを待って
+    predict(); //計算開始
+    // predictLoop(500);
+    // document
+    //   .getElementById('arjs-video')
+    //   .addEventListener('loadeddata', () => {});
+  }, 1000);
 
   // async function predictLoop(msec) {
   //   predict();
@@ -112,7 +112,7 @@ const startAR = () => {
     runDetect(document.getElementById('arjs-video'));
     setTimeout(() => {
       predict();
-    }, 1000 / 10); //10fps
+    }, 1000 / 15); //15fps
   }
 
   axesHelper = new THREE.AxesHelper(10);

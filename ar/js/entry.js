@@ -92,14 +92,14 @@ const startAR = () => {
     }
   );
 
-  setTimeout(async () => {
-    await aiModelLoad(); //機械学習モデルのロードを待って
-    predict(); //計算開始
-    // predictLoop(500);
-    // document
-    //   .getElementById('arjs-video')
-    //   .addEventListener('loadeddata', () => {});
-  }, 1000);
+  // setTimeout(async () => {
+  //   await aiModelLoad(); //機械学習モデルのロードを待って
+  //   predict(); //計算開始
+  //   // predictLoop(500);
+  //   // document
+  //   //   .getElementById('arjs-video')
+  //   //   .addEventListener('loadeddata', () => {});
+  // }, 1000);
 
   // async function predictLoop(msec) {
   //   predict();

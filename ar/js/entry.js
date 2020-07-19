@@ -112,7 +112,7 @@ const startAR = () => {
     runDetect(document.getElementById('arjs-video'));
     setTimeout(() => {
       predict();
-    }, 1000 / 15); //15fps
+    }, 1000 / 5); //5fps
   }
 
   axesHelper = new THREE.AxesHelper(10);

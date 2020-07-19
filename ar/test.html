@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Firebase AR Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.1.0/three.js/build/ar.js"></script>
+  </head>
+  <body>
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/7.16.0/firebase-app.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+
+    <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: 'AIzaSyAd1I5PEH3eo35xFXU4Fqdx1hmbzfXyM7c',
+        authDomain: 'ar-event.firebaseapp.com',
+        databaseURL: 'https://ar-event.firebaseio.com',
+        projectId: 'ar-event',
+        storageBucket: 'ar-event.appspot.com',
+        messagingSenderId: '829740813994',
+        appId: '1:829740813994:web:4803289f0afe622b45cad3',
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/7.16.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.16.0/firebase-database.js"></script>
+    <script>
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setClearColor(new THREE.Color(), 0);
+      renderer.setSize(640, 480);
+      renderer.domElement.style.position = 'absolute';
+      renderer.domElement.style.top = '0px';
+      renderer.domElement.style.left = '0px';
+      document.body.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.visible = false;
+      const camera = new THREE.Camera();
+      scene.add(camera);
+
+      const arToolkitSource = new THREEx.ArToolkitSource({
+        sourceType: 'webcam',
+      });
+
+      arToolkitSource.init(() => {
+        setTimeout(() => {
+          onResize();
+        }, 2000);
+      });
+
+      addEventListener('resize', () => {
+        onResize();
+      });
+
+      function onResize() {
+        arToolkitSource.onResizeElement();
+        arToolkitSource.copyElementSizeTo(renderer.domElement);
+        if (arToolkitContext.arController !== null) {
+          arToolkitSource.copyElementSizeTo(
+            arToolkitContext.arController.canvas
+          );
+        }
+      }
+
+      const arToolkitContext = new THREEx.ArToolkitContext({
+        cameraParametersUrl: './camera_para.dat',
+        detectionMode: 'mono',
+      });
+
+      arToolkitContext.init(() => {
+        camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+      });
+
+      const arMarkerControls = new THREEx.ArMarkerControls(
+        arToolkitContext,
+        camera,
+        {
+          type: 'pattern',
+          patternUrl: './patt.hiro',
+          changeMatrixMode: 'cameraTransformMatrix',
+        }
+      );
+
+      const boxGeom = new THREE.BoxGeometry();
+      const sphereGeom = new THREE.SphereGeometry();
+      const torusGeom = new THREE.TorusGeometry();
+      const torusKnotGeom = new THREE.TorusKnotGeometry();
+
+      const mesh = new THREE.Mesh(boxGeom, new THREE.MeshNormalMaterial());
+      mesh.position.y = 1.0;
+      scene.add(mesh);
+
+      const geometryRef = firebase.database().ref('geometry');
+      geometryRef.on('value', (snapshot) => {
+        console.log(snapshot.val().shape);
+        if (snapshot.val().shape === 0) {
+          mesh.geometry = boxGeom;
+        } else if (snapshot.val().shape === 1) {
+          mesh.geometry = sphereGeom;
+        } else if (snapshot.val().shape === 2) {
+          mesh.geometry = torusGeom;
+        } else if (snapshot.val().shape === 3) {
+          mesh.geometry = torusKnotGeom;
+        }
+      });
+
+      const clock = new THREE.Clock();
+      requestAnimationFrame(function animate() {
+        requestAnimationFrame(animate);
+        if (arToolkitSource.ready) {
+          arToolkitContext.update(arToolkitSource.domElement);
+          scene.visible = camera.visible;
+        }
+        const delta = clock.getDelta();
+        mesh.rotation.x += delta * 1.0;
+        mesh.rotation.y += delta * 1.5;
+        renderer.render(scene, camera);
+      });
+    </script>
+  </body>
+</html>

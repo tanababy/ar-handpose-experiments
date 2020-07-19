@@ -5,15 +5,24 @@ const getRandom = (min, max) => {
 
 //Tensorflow.js (handpose)
 let model;
+let point = { x: 0, y: 0 };
 async function aiModelLoad() {
   model = await handpose.load();
 }
 async function runDetect($video) {
   const predictions = await model.estimateHands($video); //webcamを渡す
+  const videoWidth = $video.offsetWidth;
+  const videoHeight = $video.offsetHeight;
+
   if (predictions.length > 0) {
     const keypoints = predictions[0].annotations.indexFinger;
     const [x, y, z] = keypoints[3];
-    console.log(`Keypoint [${x}, ${y}, ${z}]`); //人差し指の一番先の部分の3d座標が表示
+    point.x = ((videoWidth - x) / videoWidth) * 4.0 * -1.0 + 3.0;
+    point.y = (y / videoHeight) * 4.0 - 1.0;
+
+    console.log(point);
+
+    // console.log(`Keypoint [${x}, ${y}, ${z}]`); //人差し指の一番先の部分の3d座標が表示
   }
 }
 
@@ -86,29 +95,34 @@ const startAR = () => {
   setTimeout(async () => {
     await aiModelLoad(); //機械学習モデルのロードを待って
     predict(); //計算開始
-    predictLoop(500);
+    // predictLoop(500);
     // document
     //   .getElementById('arjs-video')
     //   .addEventListener('loadeddata', () => {});
   }, 1000);
 
-  async function predictLoop(msec) {
-    predict();
-    setTimeout(() => {
-      predictLoop(msec);
-    }, msec);
-  }
+  // async function predictLoop(msec) {
+  //   predict();
+  //   setTimeout(() => {
+  //     predictLoop(msec);
+  //   }, msec);
+  // }
 
   function predict() {
     runDetect(document.getElementById('arjs-video'));
+    window.requestAnimationFrame(predict);
   }
 
-  axesHelper = new THREE.AxesHelper(5);
+  axesHelper = new THREE.AxesHelper(10);
   scene.add(axesHelper);
 
   const geometry = new THREE.BoxGeometry();
-
   const meshArr = [];
+
+  const Fgeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
+  const Fmaterial = new THREE.MeshNormalMaterial();
+  const Fmesh = new THREE.Mesh(Fgeometry, Fmaterial);
+  scene.add(Fmesh);
 
   for (let i = 0; i < count; i++) {
     const hue = 360 * Math.random();
@@ -122,9 +136,11 @@ const startAR = () => {
       getRandom(-10, 10)
     );
     mesh.scale.set(0.3, 0.3, 0.3);
-    scene.add(mesh);
+    // scene.add(mesh);
     meshArr.push(mesh);
   }
+
+  //Text
 
   const clock = new THREE.Clock();
 
@@ -140,6 +156,8 @@ const startAR = () => {
       instance.rotation.y += delta * 1.5;
     });
     renderer.render(scene, camera);
+
+    Fmesh.position.set(point.x * 10.0, 0.0, point.y * 10.0);
   };
 
   loop();

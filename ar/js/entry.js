@@ -110,7 +110,9 @@ const startAR = () => {
 
   function predict() {
     runDetect(document.getElementById('arjs-video'));
-    window.requestAnimationFrame(predict);
+    setTimeout(() => {
+      predict();
+    }, 1000 / 10); //10fps
   }
 
   axesHelper = new THREE.AxesHelper(10);

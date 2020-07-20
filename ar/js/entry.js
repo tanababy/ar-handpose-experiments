@@ -200,6 +200,7 @@ const startAR = () => {
           },
         })
         .then((stream) => {
+          window.alert('video detect');
           resolve(true);
           video.addEventListener('loadeddata', () => {
             resolve(true);
@@ -212,7 +213,6 @@ const startAR = () => {
   }
   async function start() {
     const model = await handpose.load();
-    // const model = await handTrack.load(modelParams);
     const video = document.getElementById('arjs-video');
     const status = await startVideo(video);
     if (status) {
@@ -221,18 +221,8 @@ const startAR = () => {
   }
   async function runDetect(model, video) {
     const predictions = await model.estimateHands(video); //webcamを渡す
-    // const predictions = await model.detect(video); //webcamを渡す
     const videoWidth = video.offsetWidth;
     const videoHeight = video.offsetHeight;
-
-    // if (predictions.length > 0) {
-    //   const [x, y, width, height] = predictions[0].bbox;
-    //   px = 1 - ((x + width) / videoWidth) * 2;
-    //   py = 1 - ((y + height / 2) / videoHeight) * 2;
-
-    //   rVector = new THREE.Vector2(px, py);
-    //   console.log(rVector);
-    // }
 
     if (predictions.length > 0) {
       const result = predictions[0];

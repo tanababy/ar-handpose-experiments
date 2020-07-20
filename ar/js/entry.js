@@ -189,6 +189,7 @@ const startAR = () => {
 
   onRenderFcts.push(function () {
     mesh.rotation.x += 0.1;
+    mesh.position.set(point.x, 0.5, point.y);
   });
 
   //////////////////////////////////////////////////////////////////////////////////

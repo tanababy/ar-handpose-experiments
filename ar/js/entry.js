@@ -8,6 +8,7 @@ const VIDEO_HEIGHT = 500;
 
 //AR.js
 const startAR = () => {
+  let pointVector = new THREE.Vector2(0, 0);
   //////////////////////////////////////////////////////////////////////////////////
   //		Init
   //////////////////////////////////////////////////////////////////////////////////
@@ -31,11 +32,14 @@ const startAR = () => {
   // init scene and camera
   var scene = new THREE.Scene();
 
+  // raycaster
+  const raycaster = new THREE.Raycaster();
+
   //////////////////////////////////////////////////////////////////////////////////
   //		Initialize a basic camera
   //////////////////////////////////////////////////////////////////////////////////
   // Create a camera
-  var camera = new THREE.Camera();
+  const camera = new THREE.PerspectiveCamera();
   camera.position.z = 3;
   scene.add(camera);
 
@@ -131,10 +135,11 @@ const startAR = () => {
   });
   var mesh = new THREE.Mesh(geometry, material);
   mesh.position.y = geometry.parameters.height / 2;
+  mesh.position.x = -2;
   arWorldRoot.add(mesh);
 
   var axesHelper = new THREE.AxesHelper(5);
-  arWorldRoot.add(axesHelper);
+  // arWorldRoot.add(axesHelper);
 
   const Fmeshs = [];
   for (let i = 0; i < 2; i++) {
@@ -151,11 +156,11 @@ const startAR = () => {
     Fmeshs.forEach((mesh) => (mesh.visible = true));
   }
 
-  var geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
-  var material = new THREE.MeshNormalMaterial();
-  var mesh = new THREE.Mesh(geometry, material);
-  mesh.position.y = 0.5;
-  arWorldRoot.add(mesh);
+  // var geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
+  // var material = new THREE.MeshNormalMaterial();
+  // var mesh = new THREE.Mesh(geometry, material);
+  // mesh.position.y = 0.5;
+  // arWorldRoot.add(mesh);
 
   onRenderFcts.push(function () {
     mesh.rotation.x += 0.1;
@@ -185,6 +190,15 @@ const startAR = () => {
     onRenderFcts.forEach(function (onRenderFct) {
       onRenderFct(deltaMsec / 1000, nowMsec / 1000);
     });
+
+    // その光線とぶつかったオブジェクトを得る
+    raycaster.setFromCamera(pointVector, camera);
+    const intersects = raycaster.intersectObjects(arWorldRoot.children);
+    if (intersects.length > 0 && mesh === intersects[0].object) {
+      mesh.scale.set(2.0, 2.0, 2.0);
+    } else {
+      mesh.scale.set(1.0, 1.0, 1.0);
+    }
   });
 
   //Tensorflow.js (handpose)
@@ -240,7 +254,10 @@ const startAR = () => {
       indexFVector.x = indexFingerX;
       indexFVector.y = indexFingerY;
 
-      console.log(indexFVector);
+      pointVector.x = (thumbVector.x + indexFVector.x) / 2;
+      pointVector.y = (thumbVector.y + indexFVector.y) / 2;
+
+      console.log(pointVector);
 
       setDebugMesh();
     }

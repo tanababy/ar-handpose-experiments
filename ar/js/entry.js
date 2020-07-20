@@ -191,6 +191,10 @@ const startAR = () => {
   let thumbVector = new THREE.Vector2(0, 0);
   let indexFVector = new THREE.Vector2(0, 0);
   function startVideo(video) {
+    video.setAttribute('autoplay', '');
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+
     return new Promise((resolve, reject) => {
       navigator.mediaDevices
         .getUserMedia({
@@ -200,7 +204,6 @@ const startAR = () => {
           },
         })
         .then((stream) => {
-          window.alert('video detect');
           resolve(true);
           video.addEventListener('loadeddata', () => {
             resolve(true);

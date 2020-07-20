@@ -4,7 +4,7 @@ const getRandom = (min, max) => {
 };
 
 //Tensorflow.js (handpose)
-let point = { x: 0, y: 0 };
+let rVector = new THREE.Vector2(0, 0);
 function startVideo(video) {
   return new Promise((resolve, reject) => {
     navigator.mediaDevices
@@ -41,15 +41,17 @@ async function runDetect(model, video) {
   if (predictions.length > 0) {
     const keypoints = predictions[0].annotations.indexFinger;
     const [x, y, z] = keypoints[3];
-    point.x = ((videoWidth - x) / videoWidth) * 4.0 * -1.0 + 3.0;
-    point.y = (y / videoHeight) * 4.0 - 1.0;
+    px = ((videoWidth - x) / videoWidth) * 4.0 * -1.0 + 3.0;
+    py = (y / videoHeight) * 4.0 - 1.0;
 
-    console.log(point);
+    rVector = new THREE.Vector2(px, py);
+
+    console.log(rVector);
   }
 
   setTimeout(() => {
     runDetect(model, video);
-  }, 500);
+  }, 400);
 }
 
 //AR.js
@@ -189,7 +191,7 @@ const startAR = () => {
 
   onRenderFcts.push(function () {
     mesh.rotation.x += 0.1;
-    mesh.position.set(point.x, 0.5, point.y);
+    mesh.position.set(rVector.x, 0.5, rVector.y);
   });
 
   //////////////////////////////////////////////////////////////////////////////////
@@ -220,4 +222,4 @@ const startAR = () => {
 };
 
 startAR();
-// setTimeout(start, 2000);
+setTimeout(start, 2000);

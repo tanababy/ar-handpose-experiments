@@ -220,4 +220,4 @@ const startAR = () => {
 };
 
 startAR();
-setTimeout(start, 2000);
+// setTimeout(start, 2000);

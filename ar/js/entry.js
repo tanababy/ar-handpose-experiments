@@ -108,18 +108,20 @@ const startAR = () => {
     camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
   });
 
+  const marker = new THREE.Group();
   const arMarkerControls = new THREEx.ArMarkerControls(
     arToolkitContext,
-    camera,
+    marker,
     {
       type: 'pattern',
       patternUrl: './patt.hiro',
-      changeMatrixMode: 'cameraTransformMatrix',
+      changeMatrixMode: 'modelViewMatrix',
     }
   );
+  scene.add(marker);
 
   axesHelper = new THREE.AxesHelper(1);
-  scene.add(axesHelper);
+  marker.add(axesHelper);
 
   const geometry = new THREE.BoxGeometry();
   const meshArr = [];
@@ -127,7 +129,7 @@ const startAR = () => {
   const Fgeometry = new THREE.CubeGeometry(1, 1, 1);
   const Fmaterial = new THREE.MeshNormalMaterial();
   const Fmesh = new THREE.Mesh(Fgeometry, Fmaterial);
-  scene.add(Fmesh);
+  marker.add(Fmesh);
 
   for (let i = 0; i < count; i++) {
     const hue = 360 * Math.random();

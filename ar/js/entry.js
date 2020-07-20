@@ -3,9 +3,18 @@ const getRandom = (min, max) => {
   return Math.floor(Math.random() * (max + 1 - min)) + min;
 };
 
+const modelParams = {
+  flipHorizontal: true, // flip e.g for video
+  maxNumBoxes: 1, // maximum number of boxes to detect
+  iouThreshold: 0.5, // ioU threshold for non-max suppression
+  scoreThreshold: 0.6,
+};
+
 //Tensorflow.js (handpose)
 let rVector = new THREE.Vector2(0, 0);
 function startVideo(video) {
+  video.width = video.width || 640;
+  video.height = video.height || video.width * (3 / 4);
   return new Promise((resolve, reject) => {
     navigator.mediaDevices
       .getUserMedia({
@@ -16,7 +25,7 @@ function startVideo(video) {
       })
       .then((stream) => {
         resolve(true);
-        video.addEventListener('loadedmetadata', () => {
+        video.addEventListener('loadeddata', () => {
           resolve(true);
         });
       })
@@ -27,6 +36,7 @@ function startVideo(video) {
 }
 async function start() {
   const model = await handpose.load();
+  // const model = await handTrack.load(modelParams);
   const video = document.getElementById('arjs-video');
   const status = await startVideo(video);
   if (status) {
@@ -35,8 +45,18 @@ async function start() {
 }
 async function runDetect(model, video) {
   const predictions = await model.estimateHands(video); //webcamを渡す
+  // const predictions = await model.detect(video); //webcamを渡す
   const videoWidth = video.offsetWidth;
   const videoHeight = video.offsetHeight;
+
+  // if (predictions.length > 0) {
+  //   const [x, y, width, height] = predictions[0].bbox;
+  //   px = 1 - ((x + width) / videoWidth) * 2;
+  //   py = 1 - ((y + height / 2) / videoHeight) * 2;
+
+  //   rVector = new THREE.Vector2(px, py);
+  //   console.log(rVector);
+  // }
 
   if (predictions.length > 0) {
     const keypoints = predictions[0].annotations.indexFinger;

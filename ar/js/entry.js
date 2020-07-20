@@ -4,15 +4,39 @@ const getRandom = (min, max) => {
 };
 
 //Tensorflow.js (handpose)
-let model;
 let point = { x: 0, y: 0 };
-async function aiModelLoad() {
-  model = await handpose.load();
+function startVideo(video) {
+  return new Promise((resolve, reject) => {
+    navigator.mediaDevices
+      .getUserMedia({
+        audio: false,
+        video: {
+          facingMode: 'environment',
+        },
+      })
+      .then((stream) => {
+        resolve(true);
+        video.addEventListener('loadedmetadata', () => {
+          resolve(true);
+        });
+      })
+      .catch((err) => {
+        resolve(false);
+      });
+  });
 }
-async function runDetect($video) {
-  const predictions = await model.estimateHands($video); //webcamを渡す
-  const videoWidth = $video.offsetWidth;
-  const videoHeight = $video.offsetHeight;
+async function start() {
+  const model = await handpose.load();
+  const video = document.getElementById('arjs-video');
+  const status = await startVideo(video);
+  if (status) {
+    runDetect(model, video);
+  }
+}
+async function runDetect(model, video) {
+  const predictions = await model.estimateHands(video); //webcamを渡す
+  const videoWidth = video.offsetWidth;
+  const videoHeight = video.offsetHeight;
 
   if (predictions.length > 0) {
     const keypoints = predictions[0].annotations.indexFinger;
@@ -21,9 +45,11 @@ async function runDetect($video) {
     point.y = (y / videoHeight) * 4.0 - 1.0;
 
     console.log(point);
-
-    // console.log(`Keypoint [${x}, ${y}, ${z}]`); //人差し指の一番先の部分の3d座標が表示
   }
+
+  setTimeout(() => {
+    runDetect(model, video);
+  }, 500);
 }
 
 //AR.js
@@ -92,36 +118,13 @@ const startAR = () => {
     }
   );
 
-  setTimeout(async () => {
-    await aiModelLoad(); //機械学習モデルのロードを待って
-    predict(); //計算開始
-    // predictLoop(500);
-    // document
-    //   .getElementById('arjs-video')
-    //   .addEventListener('loadeddata', () => {});
-  }, 1000);
-
-  // async function predictLoop(msec) {
-  //   predict();
-  //   setTimeout(() => {
-  //     predictLoop(msec);
-  //   }, msec);
-  // }
-
-  function predict() {
-    runDetect(document.getElementById('arjs-video'));
-    setTimeout(() => {
-      predict();
-    }, 1000 / 5); //5fps
-  }
-
-  axesHelper = new THREE.AxesHelper(10);
+  axesHelper = new THREE.AxesHelper(1);
   scene.add(axesHelper);
 
   const geometry = new THREE.BoxGeometry();
   const meshArr = [];
 
-  const Fgeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
+  const Fgeometry = new THREE.CubeGeometry(1, 1, 1);
   const Fmaterial = new THREE.MeshNormalMaterial();
   const Fmesh = new THREE.Mesh(Fgeometry, Fmaterial);
   scene.add(Fmesh);
@@ -159,10 +162,11 @@ const startAR = () => {
     });
     renderer.render(scene, camera);
 
-    Fmesh.position.set(point.x * 10.0, 0.0, point.y * 10.0);
+    Fmesh.position.set(point.x, 0.0, point.y);
   };
 
   loop();
 };
 
 startAR();
+setTimeout(start, 2000);

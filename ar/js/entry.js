@@ -155,13 +155,12 @@ const startAR = () => {
     window.requestAnimationFrame(loop);
     if (arToolkitSource.ready) {
       arToolkitContext.update(arToolkitSource.domElement);
-      scene.visible = camera.visible;
     }
     const delta = clock.getDelta();
-    meshArr.map((instance) => {
-      instance.rotation.x += delta * 1.0;
-      instance.rotation.y += delta * 1.5;
-    });
+    // meshArr.map((instance) => {
+    //   instance.rotation.x += delta * 1.0;
+    //   instance.rotation.y += delta * 1.5;
+    // });
     renderer.render(scene, camera);
 
     Fmesh.position.set(point.x, 0.0, point.y);
@@ -171,4 +170,4 @@ const startAR = () => {
 };
 
 startAR();
-setTimeout(start, 2000);
+// setTimeout(start, 2000);

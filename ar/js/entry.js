@@ -196,22 +196,26 @@ const startAR = () => {
     video.setAttribute('playsinline', '');
 
     return new Promise((resolve, reject) => {
-      navigator.mediaDevices
-        .getUserMedia({
-          audio: false,
-          video: {
-            facingMode: 'environment',
-          },
-        })
-        .then((stream) => {
-          resolve(true);
-          video.addEventListener('loadeddata', () => {
-            resolve(true);
-          });
-        })
-        .catch((err) => {
-          resolve(false);
-        });
+      // navigator.mediaDevices
+      //   .getUserMedia({
+      //     audio: false,
+      //     video: {
+      //       facingMode: 'environment',
+      //     },
+      //   })
+      //   .then((stream) => {
+      //     resolve(true);
+      //     video.addEventListener('loadeddata', () => {
+      //       resolve(true);
+      //     });
+      //   })
+      //   .catch((err) => {
+      //     resolve(false);
+      //   });
+      resolve(true);
+      video.addEventListener('loadeddata', () => {
+        resolve(true);
+      });
     });
   }
   async function start() {

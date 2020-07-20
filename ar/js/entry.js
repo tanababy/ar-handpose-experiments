@@ -163,7 +163,7 @@ const startAR = () => {
   // arWorldRoot.add(mesh);
 
   onRenderFcts.push(function () {
-    mesh.rotation.x += 0.1;
+    // mesh.rotation.x += 0.1;
   });
 
   //////////////////////////////////////////////////////////////////////////////////
@@ -196,6 +196,7 @@ const startAR = () => {
     const intersects = raycaster.intersectObjects(arWorldRoot.children);
     if (intersects.length > 0 && mesh === intersects[0].object) {
       mesh.scale.set(2.0, 2.0, 2.0);
+      mesh.rotation.x += 0.1;
     } else {
       mesh.scale.set(1.0, 1.0, 1.0);
     }

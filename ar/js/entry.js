@@ -229,15 +229,17 @@ const startAR = () => {
       });
     });
   }
+  let model;
+  let video;
   async function start() {
-    const model = await handpose.load();
-    const video = document.getElementById('arjs-video');
+    model = await handpose.load();
+    video = document.getElementById('arjs-video');
     const status = await startVideo(video);
     if (status) {
-      runDetect(model, video);
+      runDetect();
     }
   }
-  async function runDetect(model, video) {
+  async function runDetect() {
     const predictions = await model.estimateHands(video); //webcamを渡す
     const videoWidth = video.offsetWidth;
     const videoHeight = video.offsetHeight;
@@ -263,9 +265,11 @@ const startAR = () => {
       setDebugMesh();
     }
 
-    setTimeout(() => {
-      runDetect(model, video);
-    }, 100);
+    window.requestAnimationFrame(runDetect);
+
+    // setTimeout(() => {
+    //   runDetect(model, video);
+    // }, 100);
   }
 
   setTimeout(start, 2000);

@@ -3,76 +3,8 @@ const getRandom = (min, max) => {
   return Math.floor(Math.random() * (max + 1 - min)) + min;
 };
 
-const modelParams = {
-  flipHorizontal: true, // flip e.g for video
-  maxNumBoxes: 1, // maximum number of boxes to detect
-  iouThreshold: 0.5, // ioU threshold for non-max suppression
-  scoreThreshold: 0.6,
-};
-
-//Tensorflow.js (handpose)
-let rVector = new THREE.Vector2(0, 0);
-function startVideo(video) {
-  video.width = video.width || 640;
-  video.height = video.height || video.width * (3 / 4);
-  return new Promise((resolve, reject) => {
-    navigator.mediaDevices
-      .getUserMedia({
-        audio: false,
-        video: {
-          facingMode: 'environment',
-        },
-      })
-      .then((stream) => {
-        resolve(true);
-        video.addEventListener('loadeddata', () => {
-          resolve(true);
-        });
-      })
-      .catch((err) => {
-        resolve(false);
-      });
-  });
-}
-async function start() {
-  const model = await handpose.load();
-  // const model = await handTrack.load(modelParams);
-  const video = document.getElementById('arjs-video');
-  const status = await startVideo(video);
-  if (status) {
-    runDetect(model, video);
-  }
-}
-async function runDetect(model, video) {
-  const predictions = await model.estimateHands(video); //webcamを渡す
-  // const predictions = await model.detect(video); //webcamを渡す
-  const videoWidth = video.offsetWidth;
-  const videoHeight = video.offsetHeight;
-
-  // if (predictions.length > 0) {
-  //   const [x, y, width, height] = predictions[0].bbox;
-  //   px = 1 - ((x + width) / videoWidth) * 2;
-  //   py = 1 - ((y + height / 2) / videoHeight) * 2;
-
-  //   rVector = new THREE.Vector2(px, py);
-  //   console.log(rVector);
-  // }
-
-  if (predictions.length > 0) {
-    const keypoints = predictions[0].annotations.indexFinger;
-    const [x, y, z] = keypoints[3];
-    px = ((videoWidth - x) / videoWidth) * 4.0 * -1.0 + 3.0;
-    py = (y / videoHeight) * 4.0 - 1.0;
-
-    rVector = new THREE.Vector2(px, py);
-
-    console.log(rVector);
-  }
-
-  setTimeout(() => {
-    runDetect(model, video);
-  }, 400);
-}
+const VIDEO_WIDTH = 640;
+const VIDEO_HEIGHT = 500;
 
 //AR.js
 const startAR = () => {
@@ -87,7 +19,7 @@ const startAR = () => {
   });
   renderer.setClearColor(new THREE.Color('lightgrey'), 0);
   // renderer.setPixelRatio( 1/2 );
-  renderer.setSize(640, 480);
+  renderer.setSize(VIDEO_WIDTH, VIDEO_HEIGHT);
   renderer.domElement.style.position = 'absolute';
   renderer.domElement.style.top = '0px';
   renderer.domElement.style.left = '0px';
@@ -104,6 +36,7 @@ const startAR = () => {
   //////////////////////////////////////////////////////////////////////////////////
   // Create a camera
   var camera = new THREE.Camera();
+  camera.position.z = 3;
   scene.add(camera);
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -203,6 +136,21 @@ const startAR = () => {
   var axesHelper = new THREE.AxesHelper(5);
   arWorldRoot.add(axesHelper);
 
+  const Fmeshs = [];
+  for (let i = 0; i < 2; i++) {
+    const Fgeometry = new THREE.CubeGeometry(0.1, 0.1, 0.1);
+    const Fmaterial = new THREE.MeshNormalMaterial();
+    const Fmesh = new THREE.Mesh(Fgeometry, Fmaterial);
+    scene.add(Fmesh);
+    Fmeshs.push(Fmesh);
+  }
+
+  function setDebugMesh() {
+    Fmeshs[0].position.set(thumbVector.x, thumbVector.y, 0);
+    Fmeshs[1].position.set(indexFVector.x, indexFVector.y, 0);
+    Fmeshs.forEach((mesh) => (mesh.visible = true));
+  }
+
   var geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
   var material = new THREE.MeshNormalMaterial();
   var mesh = new THREE.Mesh(geometry, material);
@@ -211,7 +159,6 @@ const startAR = () => {
 
   onRenderFcts.push(function () {
     mesh.rotation.x += 0.1;
-    mesh.position.set(rVector.x, 0.5, rVector.y);
   });
 
   //////////////////////////////////////////////////////////////////////////////////
@@ -239,7 +186,78 @@ const startAR = () => {
       onRenderFct(deltaMsec / 1000, nowMsec / 1000);
     });
   });
+
+  //Tensorflow.js (handpose)
+  let thumbVector = new THREE.Vector2(0, 0);
+  let indexFVector = new THREE.Vector2(0, 0);
+  function startVideo(video) {
+    return new Promise((resolve, reject) => {
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: false,
+          video: {
+            facingMode: 'environment',
+          },
+        })
+        .then((stream) => {
+          resolve(true);
+          video.addEventListener('loadeddata', () => {
+            resolve(true);
+          });
+        })
+        .catch((err) => {
+          resolve(false);
+        });
+    });
+  }
+  async function start() {
+    const model = await handpose.load();
+    // const model = await handTrack.load(modelParams);
+    const video = document.getElementById('arjs-video');
+    const status = await startVideo(video);
+    if (status) {
+      runDetect(model, video);
+    }
+  }
+  async function runDetect(model, video) {
+    const predictions = await model.estimateHands(video); //webcamを渡す
+    // const predictions = await model.detect(video); //webcamを渡す
+    const videoWidth = video.offsetWidth;
+    const videoHeight = video.offsetHeight;
+
+    // if (predictions.length > 0) {
+    //   const [x, y, width, height] = predictions[0].bbox;
+    //   px = 1 - ((x + width) / videoWidth) * 2;
+    //   py = 1 - ((y + height / 2) / videoHeight) * 2;
+
+    //   rVector = new THREE.Vector2(px, py);
+    //   console.log(rVector);
+    // }
+
+    if (predictions.length > 0) {
+      const result = predictions[0];
+      const { thumb, indexFinger } = result.annotations;
+      const thumbX = -1 + (thumb[3][0] / VIDEO_WIDTH) * 2;
+      const thumbY = 1 - (thumb[3][1] / VIDEO_HEIGHT) * 2;
+      thumbVector.x = thumbX;
+      thumbVector.y = thumbY;
+
+      const indexFingerX = -1 + (indexFinger[3][0] / VIDEO_WIDTH) * 2;
+      const indexFingerY = 1 - (indexFinger[3][1] / VIDEO_HEIGHT) * 2;
+      indexFVector.x = indexFingerX;
+      indexFVector.y = indexFingerY;
+
+      console.log(indexFVector);
+
+      setDebugMesh();
+    }
+
+    setTimeout(() => {
+      runDetect(model, video);
+    }, 400);
+  }
+
+  setTimeout(start, 2000);
 };
 
 startAR();
-setTimeout(start, 2000);

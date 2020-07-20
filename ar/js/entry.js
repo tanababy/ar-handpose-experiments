@@ -265,7 +265,7 @@ const startAR = () => {
 
     setTimeout(() => {
       runDetect(model, video);
-    }, 40);
+    }, 100);
   }
 
   setTimeout(start, 2000);
